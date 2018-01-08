@@ -91,8 +91,10 @@ __schema_var_all = $(strip $(foreach sch,$(call __schema_all_var_names,$(1),$(2)
 __schema_var_name_last = $(strip $(lastword $(call __schema_defined_var_names,$(1),$(2))))
 __schema_var_last = $(strip $($(lastword $(call __schema_defined_var_names,$(1),$(2)))))
 
+THEOS_LAYOUT_DIR_NAME ?= layout
+THEOS_LAYOUT_DIR ?= $(THEOS_PROJECT_DIR)/$(THEOS_LAYOUT_DIR_NAME)
 ifeq ($(_THEOS_HAS_STAGING_LAYOUT),)
-_THEOS_HAS_STAGING_LAYOUT := $(call __exists,$(THEOS_PROJECT_DIR)/layout)
+_THEOS_HAS_STAGING_LAYOUT := $(call __exists,$(THEOS_LAYOUT_DIR))
 endif
 
 _THEOS_LOAD_MODULES := $(sort $(call __schema_var_all,,MODULES) $(THEOS_AUTOLOAD_MODULES))
@@ -161,7 +163,7 @@ _THEOS_TARGET_HAS_INCLUDE_PATH := $(call __exists,$(THEOS_TARGET_INCLUDE_PATH))
 _THEOS_TARGET_HAS_LIBRARY_PATH := $(call __exists,$(THEOS_TARGET_LIBRARY_PATH))
 
 # Package Format requires Target default and falls back to `none'.
-_THEOS_PACKAGE_FORMAT := $(or $(call __schema_var_last,,PACKAGE_FORMAT),$(_THEOS_TARGET_DEFAULT_PACKAGE_FORMAT),none)
+_THEOS_PACKAGE_FORMAT := $(or $(call __schema_var_last,,$(_THEOS_TARGET_NAME_DEFINE)_PACKAGE_FORMAT),$(call __schema_var_last,,PACKAGE_FORMAT),$(_THEOS_TARGET_DEFAULT_PACKAGE_FORMAT),none)
 _THEOS_PACKAGE_LAST_FILENAME = $(call __simplify,_THEOS_PACKAGE_LAST_FILENAME,$(shell cat "$(_THEOS_LOCAL_DATA_DIR)/last_package" 2>/dev/null))
 
 # ObjC/++ stuff is not here, it's in instance/rules.mk and only added if there are OBJC/OBJCC objects.
@@ -191,8 +193,10 @@ endif
 
 CFLAGS += -I$(THEOS_VENDOR_INCLUDE_PATH) -I$(THEOS_FALLBACK_INCLUDE_PATH)
 _THEOS_INTERNAL_CFLAGS = -DTARGET_$(_THEOS_TARGET_NAME_DEFINE)=1 $(OPTFLAG) -Wall
+_THEOS_INTERNAL_SWIFTFLAGS = -DTARGET_$(_THEOS_TARGET_NAME_DEFINE)=1 $(SWIFT_OPTFLAG) -module-name $(THEOS_CURRENT_INSTANCE)
 _THEOS_INTERNAL_IFLAGS = $(if $(_THEOS_TARGET_HAS_INCLUDE_PATH),-I$(THEOS_TARGET_INCLUDE_PATH) )-I$(THEOS_INCLUDE_PATH) -include $(THEOS)/Prefix.pch
-_THEOS_INTERNAL_SWIFTFLAGS = -DTARGET_$(_THEOS_TARGET_NAME_DEFINE)=1 $(SWIFT_OPTFLAG) $(if $(_THEOS_TARGET_HAS_INCLUDE_PATH),-I$(THEOS_TARGET_INCLUDE_PATH) )-I$(THEOS_INCLUDE_PATH) -import-objc-header $(THEOS)/Prefix.pch -module-name $(THEOS_CURRENT_INSTANCE)
+_THEOS_INTERNAL_IFLAGS_SWIFT = $(if $(_THEOS_TARGET_HAS_INCLUDE_PATH),-I$(THEOS_TARGET_INCLUDE_PATH) )-I$(THEOS_INCLUDE_PATH) -import-objc-header $(THEOS)/Prefix.pch
+
 ifneq ($(GO_EASY_ON_ME),1)
 	_THEOS_INTERNAL_LOGOSFLAGS += -c warnings=error
 	_THEOS_INTERNAL_CFLAGS += -Werror
@@ -220,13 +224,14 @@ THEOS_OBJ_DIR = $(_THEOS_LOCAL_DATA_DIR)/$(THEOS_OBJ_DIR_NAME)/$(THEOS_CURRENT_A
 endif
 
 THEOS_STAGING_DIR_NAME ?= _
-THEOS_STAGING_DIR = $(_THEOS_LOCAL_DATA_DIR)/$(THEOS_STAGING_DIR_NAME)
+THEOS_STAGING_DIR ?= $(_THEOS_LOCAL_DATA_DIR)/$(THEOS_STAGING_DIR_NAME)
 _SPACE :=
 _SPACE +=
 _THEOS_ESCAPED_STAGING_DIR = $(subst $(_SPACE),\ ,$(THEOS_STAGING_DIR))
 
-THEOS_PACKAGE_DIR_NAME ?= debs
-THEOS_PACKAGE_DIR = $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
+THEOS_PACKAGE_DIR_NAME ?= packages
+THEOS_PACKAGE_DIR ?= $(THEOS_BUILD_DIR)/$(THEOS_PACKAGE_DIR_NAME)
+THEOS_LEGACY_PACKAGE_DIR = $(THEOS_BUILD_DIR)/debs
 
 # $(warning ...) expands to the empty string, so the contents of THEOS_STAGING_DIR are not damaged in this copy.
 FW_PACKAGE_STAGING_DIR = $(THEOS_STAGING_DIR)$(warning FW_PACKAGE_STAGING_DIR is deprecated; please use THEOS_STAGING_DIR)

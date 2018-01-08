@@ -8,7 +8,7 @@ package:: internal-package-check stage before-package internal-package after-pac
 before-package:: $(THEOS_PACKAGE_DIR)
 internal-package::
 ifeq ($(_THEOS_FINAL_PACKAGE),$(_THEOS_TRUE))
-	find $(THEOS_STAGING_DIR) -name \*.png -exec pincrush -i {} \;
+	find $(THEOS_STAGING_DIR) -name \*.png -a ! -type l -exec pincrush -i {} \;
 	find $(THEOS_STAGING_DIR) \( -name \*.plist -or -name \*.strings \) -exec plutil -convert binary1 {} \;
 endif
 internal-package-check::
@@ -101,7 +101,7 @@ endif # TARGET_INSTALL_REMOTE == true
 
 _THEOS_SUDO_COMMAND ?= $(THEOS_SUDO_COMMAND)
 
-ifeq ($(THEOS_DEVICE_USER),root)
+ifeq ($(TARGET_INSTALL_REMOTE)$(THEOS_DEVICE_USER),$(_THEOS_TRUE)root)
 _THEOS_SUDO_COMMAND =
 endif
 
@@ -123,6 +123,17 @@ ifeq ($(INSTALL_TARGET_PROCESSES),)
 else
 	$(ECHO_UNLOADING)install.exec "killall $(INSTALL_TARGET_PROCESSES) 2>/dev/null || true"$(ECHO_END)
 endif
+
+## Uninstallation Core Rules
+uninstall:: before-uninstall internal-uninstall after-uninstall
+
+after-uninstall:: internal-after-uninstall
+before-uninstall::
+
+internal-uninstall::
+	@:
+
+internal-after-uninstall::
 
 -include $(THEOS_MAKE_PATH)/install/$(_THEOS_PACKAGE_FORMAT)_$(_THEOS_INSTALL_TYPE).mk
 $(eval $(call __mod,install/$(_THEOS_PACKAGE_FORMAT)_$(_THEOS_INSTALL_TYPE).mk))

@@ -5,9 +5,13 @@
 
 extendedFlag=$([[ $(uname -sp) == "Darwin arm" ]] && echo '-r' || echo '-E')
 origin="$(git config remote.origin.url)"
+<<<<<<< HEAD
 repo_name="$(echo "$origin" | sed $extendedFlag 's-^(git@github.com:|(https|git)://github.com/)(.+)$-\3-;s-\.git$--')"
+=======
+repo_name="$(echo "$origin" | sed -e 's-^git@github.com:--;s-^https?://github.com/--;s-^git://github.com/--;s-\.git$--')"
+>>>>>>> 3a7fca6b436e011c4ce860e0c842a70ad23b21e9
 
-if [[ "$repo_name" != "$origin" && "$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/vnd.github.chitauri-preview+sha" -H "If-None-Match: \"$(git rev-parse --verify HEAD)\"" "https://api.github.com/repos/$repo_name/commits/HEAD")" == "304" ]]; then
+if [[ "$repo_name" != "$origin" && "$(curl -s -o /dev/null -w "%{http_code}" -H "Accept: application/vnd.github.v3.sha" -H "If-None-Match: \"$(git rev-parse --verify HEAD)\"" "https://api.github.com/repos/$repo_name/commits/HEAD")" == "304" ]]; then
 	echo "Theos: Already up-to-date." 1>&2
 else
 	if [[ -d ".git" ]]; then
