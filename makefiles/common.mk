@@ -140,10 +140,12 @@ endif
 _THEOS_TARGET_CALCULATED := 1
 endif
 
+-include $(THEOS_MAKE_PATH)/targets/$(THEOS_PLATFORM_NAME)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_OS)/$(_THEOS_TARGET).mk
 -include $(THEOS_MAKE_PATH)/targets/$(_THEOS_TARGET).mk
+$(eval $(call __mod,targets/$(THEOS_PLATFORM_NAME)/$(_THEOS_TARGET).mk))
 $(eval $(call __mod,targets/$(_THEOS_PLATFORM_ARCH)/$(_THEOS_TARGET).mk))
 $(eval $(call __mod,targets/$(_THEOS_PLATFORM)/$(_THEOS_TARGET).mk))
 $(eval $(call __mod,targets/$(_THEOS_OS)/$(_THEOS_TARGET).mk))
